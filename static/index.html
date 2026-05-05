@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미국주식 박스권 분석기</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        /* 분석 도구 영역 스타일 */
+        .analysis-tool {
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* 수동 입력 섹션 */
+        .manual-section {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            padding-bottom: 20px;
+        }
+
+        /* 구분선 스타일 */
+        .divider {
+            position: relative;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: #eee;
+            z-index: 1;
+        }
+        .divider span {
+            position: relative;
+            background: #fff;
+            padding: 0 15px;
+            color: #888;
+            font-size: 0.85rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* 전문가 프리셋 섹션 */
+        .expert-section {
+            background: #fcfcfc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .expert-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .preset-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .preset-card:hover {
+            border-color: #3498db;
+            background: #f0f7ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .preset-card h4 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        .preset-card p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+        }
+
+        /* 기존 스타일 보완 */
+        .input-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { font-weight: bold; font-size: 0.9rem; color: #444; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        #search-btn { 
+            padding: 10px 25px; 
+            background: #2c3e50; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold;
+            height: 40px;
+        }
+        #search-btn:hover { background: #1a252f; }
+
+    .analysis-summary {
+        background: #ebf5ff;
+        border: 1px solid #3498db;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 1.05rem;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    .analysis-summary strong {
+        color: #e74c3c; /* 강조색 */
+    }
+    .analysis-summary .icon {
+        font-size: 1.4rem;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 실시간 주식 박스권 & 뉴스 대시보드</h1>
+        
+        <div class="analysis-tool">
+            <!-- [세트 1] 수동 검색 영역 -->
+            <div class="manual-section">
+                <div class="input-group">
+                    <label for="ticker">1. 종목 선택</label>
+                    <input list="ticker-list" id="ticker" value="AAPL" placeholder="예: TSLA 또는 테슬라" autocomplete="off">
+                    <datalist id="ticker-list"></datalist>
+                </div>
+                <div class="input-group" style="flex: 0.5;">
+                    <label for="period">2. 기간 입력</label>
+                    <input type="number" id="period" value="20" min="5" max="100">
+                </div>
+                <button id="search-btn">직접 분석 실행</button>
+            </div>
+
+            <!-- 구분선 -->
+            <div class="divider">
+                <span>또는 전문가 추천 설정 적용</span>
+            </div>
+
+            <!-- [세트 2] 전문가 프리셋 영역 -->
+            <div class="expert-section">
+                <div class="expert-grid">
+                    <!-- 단기 카드 -->
+                    <div class="preset-card" onclick="applyPreset(10)">
+                        <span class="badge" style="background: #e67e22;">단기 스윙</span>
+                        <h4>10일 기준 분석</h4>
+                        <p>주가 변화에 민감하게 반응합니다. 단기 박스권 돌파 확인용.</p>
+                    </div>
+                    <!-- 중기 카드 -->
+                    <div class="preset-card" onclick="applyPreset(20)">
+                        <span class="badge">표준(추천)</span>
+                        <h4>20일 기준 분석</h4>
+                        <p>한 달간의 평균 심리 반영. 가장 신뢰도가 높은 표준 설정입니다.</p>
+                    </div>
+                    <!-- 장기 카드 -->
+                    <div class="preset-card" onclick="applyPreset(50)">
+                        <span class="badge" style="background: #27ae60;">중장기 추세</span>
+                        <h4>50일 기준 분석</h4>
+                        <p>장기 매집 구간이나 큰 흐름의 박스권 바닥을 찾을 때 유용합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <div class="chart-section">
+                <div id="loading" class="loading" style="display: none;">데이터를 가져오는 중입니다...</div>
+
+        <!-- [추가] 실시간 분석 요약 메시지 영역 -->
+        <div id="analysis-result" class="analysis-summary" style="display: none;">
+            <span class="icon">📊</span>
+            <span id="trend-text">분석을 진행 중입니다...</span>
+        </div>
+
+
+
+<!-- 관심 종목 관리 섹션 -->
+<div class="analysis-tool" style="margin-top: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin:0;">⭐ 내 관심 종목 그룹</h3>
+        <div>
+            <button onclick="createNewGroup()" class="small-btn">+ 새 그룹 만들기</button>
+            <button id="add-fav-btn" class="small-btn" style="background:#27ae60; color:white; border:none;">+ 현재 종목을 그룹에 추가</button>
+        </div>
+    </div>
+    <div id="fav-groups-container" class="groups-grid">
+        <!-- JS로 그룹 카드가 생성됨 -->
+    </div>
+</div>
+
+<!-- ... 차트 및 뉴스 레이아웃 ... -->
+
+
+                <div id="chart"></div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script src="/static/script.js"></script>
+    <script>
+        // 전문가 프리셋 적용 함수
+        function applyPreset(days) {
+            // 1. 기간 입력창 수치 변경
+            document.getElementById('period').value = days;
+            // 2. 즉시 분석 실행 (현재 입력된 티커 기준)
+            fetchData(); 
+            
+            // 시각적 피드백 (선택된 느낌 주기)
+            console.log(`전문가 설정 적용: ${days}일`);
+        }
+    </script>
+</body>
+</html>
