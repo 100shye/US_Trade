@@ -41,20 +41,35 @@ function drawChart(chartData, ticker, period) {
     // --- traceEMA 정의 부분 삭제됨 ---
 
     const layout = {
-        title: `<b>${ticker}</b>: 매수/매도 박스권 분석`,
+        title: `<b>${ticker}</b>`, // 모바일에서는 제목을 간결하게
         xaxis: { type: 'date', rangeslider: { visible: false } },
-        yaxis: { title: '가격 (USD)', side: 'right', fixedrange: false },
-        height: 650,
-        margin: { t: 60, l: 30, r: 60, b: 50 },
+        yaxis: { title: 'Price', side: 'right', fixedrange: false },
+        autosize: true, // 자동으로 크기 조절
+        height: window.innerWidth < 768 ? 450 : 650, // 모바일에서는 높이를 낮춤
+        margin: { 
+            t: 40, 
+            l: 10, 
+            r: 40, 
+            b: 40 
+        },
         hovermode: 'x unified',
-        legend: { orientation: 'h', y: -0.15 },
+        legend: { 
+            orientation: 'h', 
+            y: -0.2,
+            x: 0,
+            font: { size: 10 } // 모바일에서 레전드 글자 크기 축소
+        },
         plot_bgcolor: '#fcfcfc'
     };
 
-    // 그릴 목록에서 traceEMA 제거
-    Plotly.newPlot('chart', [traceUpper, traceLower, traceCandle, traceHourlyLine], layout);
-}
+    // 반응형 옵션 추가
+    const config = {
+        responsive: true,
+        displayModeBar: false // 모바일에서는 상단 도구바가 거슬리므로 숨김
+    };
 
+    Plotly.newPlot('chart', [traceUpper, traceLower, traceCandle, traceHourlyLine], layout, config);
+}
 // 데이터 가져오기 함수
 async function fetchData() {
     const tickerInput = document.getElementById('ticker');
